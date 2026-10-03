@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MetaFit — Protótipo V2</title>
+<style>
+:root{--bg:#f6f7f8;--card:#fff;--text:#17201b;--muted:#68736c;--line:#e1e6e3;--brand:#176b4a;--soft:#e9f4ee;--warn:#fff7df}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text)}
+.app{max-width:520px;margin:auto;min-height:100vh;background:#fafbfa;padding:18px 16px 92px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.logo{font-size:21px;font-weight:800}.badge{font-size:12px;background:var(--soft);color:var(--brand);padding:6px 9px;border-radius:999px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0}.muted{color:var(--muted)}h1{font-size:25px;margin:5px 0}h2{font-size:18px;margin:0 0 10px}p{line-height:1.45}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.choice{border:1px solid var(--line);background:#fff;border-radius:14px;padding:14px;text-align:left;cursor:pointer}.choice.on{border:2px solid var(--brand);background:var(--soft)}
+label{display:block;font-size:13px;color:var(--muted);margin:12px 0 5px}input,select{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px;background:white;color:var(--text)}
+button.primary{width:100%;border:0;background:var(--brand);color:white;border-radius:13px;padding:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px}
+button.secondary{border:1px solid var(--line);background:white;border-radius:11px;padding:9px 11px;cursor:pointer}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.big{font-size:28px;font-weight:800}.bar{height:9px;background:#edf0ee;border-radius:9px;overflow:hidden;margin-top:8px}.fill{height:100%;background:var(--brand);width:0}
+.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,100%);display:grid;grid-template-columns:repeat(4,1fr);background:white;border-top:1px solid var(--line);padding:8px}.tab{border:0;background:white;padding:8px 2px;color:var(--muted);font-size:12px}.tab.on{color:var(--brand);font-weight:800}
+.page{display:none}.page.on{display:block}.meal{padding:11px 0;border-bottom:1px solid var(--line)}.meal:last-child{border:0}.kpi{background:white;border:1px solid var(--line);border-radius:15px;padding:13px}.kpi b{font-size:19px}.notice{background:var(--warn);padding:12px;border-radius:12px;font-size:12px;color:#65551d}.source{font-size:11px;color:var(--muted)}.hidden{display:none!important}.danger{color:#a33;background:none;border:0;cursor:pointer}.pill{font-size:12px;background:#f0f2f1;padding:5px 8px;border-radius:999px}
+</style></head>
+<body><main class="app">
+<div class="top"><div class="logo">MetaFit <span class="badge">MVP V2</span></div><button class="secondary" onclick="resetApp()">Reiniciar</button></div>
+
+<section id="onboarding">
+<div id="step1">
+<p class="muted">Passo 1 de 3</p><h1>Qual é seu objetivo?</h1><p class="muted">Isso será usado para personalizar o acompanhamento.</p>
+<div class="grid">
+<button class="choice" data-goal="Perder peso/gordura">↓ Perder gordura</button>
+<button class="choice" data-goal="Manter peso">= Manter peso</button>
+<button class="choice" data-goal="Ganhar peso/massa">↑ Ganhar massa</button>
+</div><p id="goalFeedback" class="source" style="margin-top:12px">Selecione uma opção acima para continuar.</p>
+<button id="continueGoal" class="primary" onclick="next1()" disabled style="opacity:.45">Continuar</button>
+</div>
+
+<div id="step2" class="hidden">
+<p class="muted">Passo 2 de 3</p><h1>Seu perfil</h1>
+<div class="grid"><div><label>Idade</label><input id="age" type="number" min="18" max="90" value="30"></div><div><label>Sexo biológico*</label><select id="sex"><option value="m">Masculino</option><option value="f">Feminino</option></select></div></div>
+<div class="grid"><div><label>Altura (cm)</label><input id="height" type="number" value="174"></div><div><label>Peso (kg)</label><input id="weight" type="number" step=".1" value="72"></div></div>
+<label>Nível de atividade diária</label><select id="activity"><option value="1.2">Sedentário</option><option value="1.375">Levemente ativo</option><option value="1.55" selected>Moderadamente ativo</option><option value="1.725">Muito ativo</option></select>
+<p class="source">*Usado somente no cálculo energético estimado do protótipo.</p>
+<button class="primary" onclick="next2()">Continuar</button>
+</div>
+
+<div id="step3" class="hidden">
+<p class="muted">Passo 3 de 3</p><h1>Como definir sua meta?</h1>
+<div class="card"><label><input style="width:auto" type="radio" name="targetMode" value="estimate" checked> Usar estimativa educativa do aplicativo</label>
+<label><input style="width:auto" type="radio" name="targetMode" value="professional"> Tenho meta definida por nutricionista</label>
+<div id="proBox" class="hidden"><label>Meta informada pelo profissional (kcal/dia)</label><input id="proCalories" type="number" placeholder="Ex.: 2200"></div></div>
+<div class="notice">A estimativa do aplicativo é apenas uma referência de acompanhamento, não prescrição nutricional. Gestação, menores de 18 anos, condições clínicas ou necessidades especiais exigem orientação profissional.</div>
+<button class="primary" onclick="finishOnboarding()">Começar acompanhamento</button>
+</div>
+</section>
+
+<section id="main" class="hidden">
+<section class="page on" data-page="today">
+<div class="row"><div><p class="muted" style="margin:0">Objetivo</p><h1 id="goalTitle"></h1></div><span class="pill" id="targetType"></span></div>
+<div class="card"><div class="row"><div><span class="muted">Calorias hoje</span><div class="big"><span id="calConsumed">0</span> <small style="font-size:14px;font-weight:500">/ <span id="calTarget"></span> kcal</small></div></div><b id="calRemaining"></b></div><div class="bar"><div id="calFill" class="fill"></div></div></div>
+<div class="grid"><div class="kpi"><span class="muted">Proteína</span><br><b><span id="protein">0</span> g</b></div><div class="kpi"><span class="muted">Peso atual</span><br><b><span id="weightNow"></span> kg</b></div></div>
+<div class="card"><h2>Resumo</h2><div class="row"><span>Alimentos registrados</span><b id="foodCount">0</b></div><div class="row" style="margin-top:10px"><span>Séries registradas</span><b id="seriesCount">0</b></div></div>
+<div class="notice">O acompanhamento mostra tendências e aderência. Não diagnostica doenças nem substitui nutricionista, médico ou profissional de educação física.</div>
+</section>
+
+<section class="page" data-page="food">
+<h1>Alimentação</h1><p class="muted">Escolha o alimento e informe a quantidade. O protótipo calcula automaticamente.</p>
+<div class="card"><label>Refeição</label><select id="mealType"><option>Café da manhã</option><option>Almoço</option><option>Lanche</option><option>Jantar</option><option>Ceia</option></select>
+<label>Buscar alimento</label><select id="foodSelect"></select>
+<div class="grid"><div><label>Quantidade (g/ml)</label><input id="foodQty" type="number" value="100" min="1"></div><div><label>Estimativa</label><div class="kpi" style="margin-top:5px"><b id="foodPreview">0 kcal</b></div></div></div>
+<p id="foodSource" class="source"></p><button class="primary" onclick="addFood()">Adicionar</button></div>
+<div class="card"><h2>Registrado hoje</h2><div id="foodLog"><p class="muted">Nenhum alimento registrado.</p></div></div>
+</section>
+
+<section class="page" data-page="workout">
+<h1>Treino</h1><p class="muted">Registre o que realmente fez. O histórico permitirá acompanhar progressão.</p>
+<div class="card"><label>Exercício</label><input id="exercise" placeholder="Ex.: Supino máquina"><div class="grid"><div><label>Carga (kg)</label><input id="load" type="number" step=".5"></div><div><label>Repetições</label><input id="reps" type="number"></div></div><button class="primary" onclick="addWorkout()">Registrar série</button></div>
+<div class="card"><h2>Treino de hoje</h2><div id="workoutLog"><p class="muted">Nenhuma série registrada.</p></div></div>
+</section>
+
+<section class="page" data-page="progress">
+<h1>Evolução</h1><div class="grid"><div class="kpi"><span class="muted">Aderência calórica hoje</span><br><b id="adherence">0%</b></div><div class="kpi"><span class="muted">Séries hoje</span><br><b id="progressSeries">0</b></div></div>
+<div class="card"><h2>Atualizar peso</h2><label>Novo peso (kg)</label><input id="newWeight" type="number" step=".1"><button class="primary" onclick="saveWeight()">Salvar peso</button><div id="weightHistory" style="margin-top:12px"></div></div>
+</section>
+
+<nav class="tabs"><button class="tab on" data-tab="today">Hoje</button><button class="tab" data-tab="food">Alimentação</button><button class="tab" data-tab="workout">Treino</button><button class="tab" data-tab="progress">Evolução</button></nav>
+</section>
+</main>
+<script>
+const foods=[
+{name:"Arroz tipo 1, cozido",kcal:128,protein:2.5,unit:"g",source:"TACO — valor de demonstração por 100 g"},
+{name:"Feijão carioca, cozido",kcal:76,protein:4.8,unit:"g",source:"TACO — valor de demonstração por 100 g"},
+{name:"Peito de frango, grelhado",kcal:159,protein:32.0,unit:"g",source:"TACO — valor de demonstração por 100 g"},
+{name:"Banana prata, crua",kcal:98,protein:1.3,unit:"g",source:"TACO — valor de demonstração por 100 g"},
+{name:"Ovo de galinha, inteiro, cozido",kcal:146,protein:13.3,unit:"g",source:"TACO — valor de demonstração por 100 g"}
+];
+const $ = id => document.getElementById(id);
+const onboarding=$("onboarding"), step1=$("step1"), step2=$("step2"), step3=$("step3"), proBox=$("proBox"), main=$("main");
+const age=$("age"), sex=$("sex"), height=$("height"), weight=$("weight"), activity=$("activity"), proCalories=$("proCalories");
+const goalTitle=$("goalTitle"), targetType=$("targetType"), calConsumed=$("calConsumed"), calTarget=$("calTarget"), calRemaining=$("calRemaining"), calFill=$("calFill"), protein=$("protein"), weightNow=$("weightNow"), foodCount=$("foodCount"), seriesCount=$("seriesCount");
+const mealType=$("mealType"), foodSelect=$("foodSelect"), foodQty=$("foodQty"), foodPreview=$("foodPreview"), foodSource=$("foodSource"), foodLog=$("foodLog");
+const exercise=$("exercise"), load=$("load"), reps=$("reps"), workoutLog=$("workoutLog");
+const adherence=$("adherence"), progressSeries=$("progressSeries"), newWeight=$("newWeight"), weightHistory=$("weightHistory");
+let state={goal:"",target:0,targetMode:"",weight:0,foods:[],workouts:[],weights:[]};
+try{state=JSON.parse(localStorage.getItem("metafit-v2")||"null")||state}catch(e){}
+function save(){try{localStorage.setItem("metafit-v2",JSON.stringify(state))}catch(e){} render()}
+document.querySelectorAll(".choice").forEach(function(b){
+ b.addEventListener("click", function(){
+  document.querySelectorAll(".choice").forEach(function(x){x.classList.remove("on")});
+  b.classList.add("on"); state.goal=b.getAttribute("data-goal");
+  $("goalFeedback").textContent="Selecionado: "+state.goal;
+  $("continueGoal").disabled=false; $("continueGoal").style.opacity="1";
+ });
+});
+function next1(){if(!state.goal)return alert("Selecione seu objetivo.");step1.classList.add("hidden");step2.classList.remove("hidden")}
+function next2(){step2.classList.add("hidden");step3.classList.remove("hidden")}
+document.querySelectorAll('input[name="targetMode"]').forEach(function(r){r.addEventListener("change",function(){proBox.classList.toggle("hidden",r.value!=="professional"||!r.checked)})});
+function estimateTarget(){
+ let w=+weight.value,h=+height.value,a=+age.value,s=sex.value;
+ let bmr=10*w+6.25*h-5*a+(s==="m"?5:-161), tdee=bmr*(+activity.value);
+ if(state.goal==="Perder peso/gordura") tdee*=0.85;
+ if(state.goal==="Ganhar peso/massa") tdee*=1.10;
+ return Math.round(tdee/10)*10;
+}
+function finishOnboarding(){
+ let mode=document.querySelector('input[name="targetMode"]:checked').value;
+ let t=mode==="professional"?+proCalories.value:estimateTarget();
+ if(!t||t<800||t>6000)return alert("Revise a meta calórica.");
+ state.target=t;state.targetMode=mode;state.weight=+weight.value;state.weights=[{date:new Date().toLocaleDateString("pt-BR"),value:state.weight}];save();
+ onboarding.classList.add("hidden");main.classList.remove("hidden");
+}
+function totals(){return state.foods.reduce((a,f)=>({kcal:a.kcal+f.kcal,protein:a.protein+f.protein}),{kcal:0,protein:0})}
+function render(){
+ if(state.target){onboarding.classList.add("hidden");main.classList.remove("hidden")}
+ if(!state.target)return;
+ let t=totals();goalTitle.textContent=state.goal;targetType.textContent=state.targetMode==="professional"?"Meta profissional":"Estimativa educativa";
+ calTarget.textContent=state.target;calConsumed.textContent=Math.round(t.kcal);calRemaining.textContent=Math.max(0,Math.round(state.target-t.kcal))+" restantes";
+ calFill.style.width=Math.min(100,t.kcal/state.target*100)+"%";protein.textContent=Math.round(t.protein);weightNow.textContent=state.weight.toFixed(1).replace(".",",");
+ foodCount.textContent=state.foods.length;seriesCount.textContent=state.workouts.length;progressSeries.textContent=state.workouts.length;
+ adherence.textContent=Math.round(Math.min(100,t.kcal/state.target*100))+"%";
+ foodLog.innerHTML=state.foods.length?state.foods.map((f,i)=>`<div class="meal row"><div><b>${f.name}</b><br><span class="muted">${f.meal} • ${f.qty} g • ${Math.round(f.kcal)} kcal • ${f.protein.toFixed(1)} g proteína</span><br><span class="source">${f.source}</span></div><button class="danger" onclick="removeFood(${i})">Excluir</button></div>`).join(""):'<p class="muted">Nenhum alimento registrado.</p>';
+ workoutLog.innerHTML=state.workouts.length?state.workouts.map((w,i)=>`<div class="meal row"><div><b>${w.exercise}</b><br><span class="muted">${w.load} kg × ${w.reps} rep.</span></div><button class="danger" onclick="removeWorkout(${i})">Excluir</button></div>`).join(""):'<p class="muted">Nenhuma série registrada.</p>';
+ weightHistory.innerHTML=state.weights.map(x=>`<div class="row meal"><span>${x.date}</span><b>${x.value.toFixed(1).replace(".",",")} kg</b></div>`).join("");
+}
+function removeFood(i){state.foods.splice(i,1);save()}function removeWorkout(i){state.workouts.splice(i,1);save()}
+foodSelect.innerHTML=foods.map((f,i)=>`<option value="${i}">${f.name}</option>`).join("");
+function preview(){let f=foods[+foodSelect.value],q=+foodQty.value||0;foodPreview.textContent=Math.round(f.kcal*q/100)+" kcal";foodSource.textContent=f.source+" • "+f.kcal+" kcal/100 g"}
+foodSelect.onchange=preview;foodQty.oninput=preview;preview();
+function addFood(){let f=foods[+foodSelect.value],q=+foodQty.value;if(!q||q<=0)return;state.foods.push({name:f.name,meal:mealType.value,qty:q,kcal:f.kcal*q/100,protein:f.protein*q/100,source:f.source});save()}
+function addWorkout(){let e=exercise.value.trim(),l=+load.value,r=+reps.value;if(!e||l<0||!r)return alert("Preencha exercício, carga e repetições.");state.workouts.push({exercise:e,load:l,reps:r});exercise.value="";load.value="";reps.value="";save()}
+function saveWeight(){let v=+newWeight.value;if(!v||v<30||v>350)return alert("Informe um peso válido.");state.weight=v;state.weights.unshift({date:new Date().toLocaleDateString("pt-BR"),value:v});newWeight.value="";save()}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));document.querySelectorAll(".page").forEach(x=>x.classList.remove("on"));b.classList.add("on");document.querySelector(`[data-page="${b.dataset.tab}"]`).classList.add("on")});
+function resetApp(){if(confirm("Apagar os dados deste protótipo e começar novamente?")){try{localStorage.removeItem("metafit-v2")}catch(e){} location.reload()}}
+render();
+</script></body></html>
